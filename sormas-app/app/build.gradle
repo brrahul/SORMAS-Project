@@ -32,6 +32,7 @@ android {
     buildTypes {
         debug {
             applicationIdSuffix ".debug"
+            testCoverageEnabled true
         }
         release {
             signingConfig signingConfigs.release
@@ -58,6 +59,14 @@ android {
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    testOptions {
+        execution 'ANDROID_TEST_ORCHESTRATOR'
+        animationsDisabled true
+        unitTests {
+            includeAndroidResources = true
+        }
     }
 
     // needed for pre androidx testing. This will not make it's way into the apk
@@ -114,6 +123,46 @@ dependencies {
 
 apply plugin: 'com.google.gms.google-services'
 apply plugin: 'io.fabric'
+
+// Use of org.jacoco:org.jacoco.core, see https://www.rallyhealth.com/coding/code-coverage-for-android-testing
+apply plugin: 'jacoco'
+
+jacoco {
+    toolVersion = '0.8.5'
+}
+tasks.withType(Test) {
+    jacoco.includeNoLocationClasses = true
+}
+task jacocoUnitTestReport(type: JacocoReport, dependsOn: ['testDebugUnitTest']) {
+    // Location of the build directory for the build Variant
+//    $buildDir =
+    def coverageSourceDirs = [
+        "${project.projectDir}/src/main/java"
+    ]
+    def fileFilter = [
+        '**/R.class',
+        '**/R$*.class',
+        '**/*$ViewInjector*.*',
+        '**/*$ViewBinder*.*',
+        '**/BuildConfig.*',
+        '**/Manifest*.*'
+    ]
+    def javaClasses = fileTree(
+        dir: "$buildDir/intermediates/classes/debug",
+        excludes: fileFilter
+    )
+    classDirectories = files([ javaClasses ])
+    additionalSourceDirs = files(coverageSourceDirs)
+    sourceDirectories = files(coverageSourceDirs)
+    executionData = fileTree(dir: "$buildDir", includes: [
+            "jacoco/testDebugUnitTest.exec"
+    ])
+    reports {
+        xml.enabled = true
+        html.enabled = true
+    }
+}
+
 apply plugin: 'org.sonarqube'
 
 sonarqube {
