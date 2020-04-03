@@ -47,6 +47,8 @@ android {
         enabled = true
     }
     productFlavors {
+        free {}
+        paid {}
     }
 
     lintOptions {
