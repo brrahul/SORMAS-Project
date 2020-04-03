@@ -114,7 +114,17 @@ dependencies {
 
 apply plugin: 'com.google.gms.google-services'
 apply plugin: 'io.fabric'
+apply plugin: 'jacoco-android'
 apply plugin: 'org.sonarqube'
+
+jacoco {
+    // https://www.eclemma.org/jacoco/
+    toolVersion = "0.8.5"
+}
+
+tasks.withType(Test) {
+  jacoco.includeNoLocationClasses = true
+}
 
 sonarqube {
     properties {
